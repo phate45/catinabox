@@ -18,20 +18,30 @@ class CouldNotGetNameError(Exception):
         )
 
 
+def get_name():
+    try:
+        result = requests.get(NAME_GENERATOR_API_ENDPOINT)
+        name = result.json()[0]
+    except requests.exceptions.RequestException as e:
+        raise CouldNotGetNameError(e)
+
+    return name
+
+
+def get_birthday():
+    current_time = int(time.time())
+    birthday = random.randint(
+        current_time - (SECONDS_IN_YEAR * MAX_YEARS_OLD),
+        current_time)
+    return time.strftime('%Y-%m-%d %H:%M:%S',
+                         time.localtime(birthday))
+
+
 def cat_generator():
     while True:
-        try:
-            result = requests.get(NAME_GENERATOR_API_ENDPOINT)
-            name = result.json()[0]
-        except requests.exceptions.RequestException as e:
-            raise CouldNotGetNameError(e)
+        name = get_name()
 
-        current_time = int(time.time())
-        birthday = random.randint(
-            current_time - (SECONDS_IN_YEAR * MAX_YEARS_OLD),
-            current_time)
-        birthday_datetime = time.strftime('%Y-%m-%d %H:%M:%S',
-                                          time.localtime(birthday))
+        birthday_datetime = get_birthday()
 
         yield {"name": name,
                "birthday": birthday_datetime}
